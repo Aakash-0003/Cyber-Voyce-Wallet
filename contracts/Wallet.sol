@@ -10,7 +10,6 @@ contract Wallet {
 
     function deposit() public payable returns (uint256) {
         balance[msg.sender] += msg.value;
-        payable(address(this)).transfer(msg.value);
         emit deposited(msg.value);
         return msg.value;
     }
@@ -18,7 +17,7 @@ contract Wallet {
     function withdraw(uint256 amount) public returns (uint256, address) {
         require(balance[msg.sender] >= amount, "INSUFFICIENT BALANCE!");
         balance[msg.sender] -= amount;
-        payable(msg.sender).transfer(amount);
+        payable(msg.sender).transfer(amount);   
         emit withdrawn(amount, msg.sender);
         return (amount, msg.sender);
     }

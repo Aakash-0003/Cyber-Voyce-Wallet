@@ -15,11 +15,14 @@ export default function Wallet() {
         balance: 0
     });
     const [reload, shouldReload] = useState(false);
+
     const reloadEffect = () => shouldReload(!reload);
     useEffect(() => {
 
         const loadProvider = async () => {
             const provider = await detectEthereumProvider();
+            const contract = await loadContract("Wallet", provider);
+            console.log("contract is here", contract)
             if (provider) {
 
                 console.log('Ethereum successfully detected!')
@@ -35,9 +38,10 @@ export default function Wallet() {
                 });
                 setWeb3Api({
                     provider: provider,
-                    web3: new Web3(provider)
+                    web3: new Web3(provider),
+                    contract
                 });
-                reloadEffect();
+
             } else {
 
                 // if the provider is not detected, detectEthereumProvider resolves to null
@@ -45,20 +49,20 @@ export default function Wallet() {
             }
         }
         loadProvider();
-    },);
+    }, []);
 
     useEffect(() => {
         const getAccounts = async () => {
-            const accounts = await web3Api.web3.eth.getAccounts();
-            let balance = await web3Api.web3.eth.getBalance(accounts[0]);
-            balance = await web3Api.web3.utils.fromWei(balance, 'ether');
-            console.log(accounts);
-            console.log(balance);
+            const { web3, contract } = web3Api
+            const accounts = await web3.eth.getAccounts();
+            let balance = await contract.getBalance({ from: accounts[0] });
+            balance = await web3.utils.fromWei(balance, 'ether');
             setAccounts({ account: accounts[0], balance });
             reloadEffect();
         }
         web3Api.web3 && getAccounts();
-    }, [web3Api.web3])
+    }, [web3Api, reloadEffect])
+
     /* console.log(web3Api.web3); */
     return (
         <div className="App flex-column">
@@ -73,7 +77,7 @@ export default function Wallet() {
                     <h3 className="card-text">Balance </h3>
                     <h5 className="card-text">{accounts.balance} Voyce</h5>
 
-                    <Link to="/deposit" className="btn btn-outline-success p-3 m-4">DEPOSIT</Link>
+                    <Link to="/deposit" className="btn btn-outline-success p-3 m-4"  >DEPOSIT</Link>
                     <Link to="/send" className="btn btn-outline-primary p-3 m-4 " >SEND</Link>
 
                     {/* /* /*                     {/* <!-- Button trigger modal --> */}
